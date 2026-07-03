@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meja Semakan — Sistem Moderasi Skrip Pelajar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2A4A;
+    --ink-soft:#3A4A6B;
+    --paper:#F7F4EC;
+    --paper-card:#FFFFFF;
+    --redpen:#B23A48;
+    --redpen-soft:#E9C6C9;
+    --gold:#C08A28;
+    --line:#DAD3C0;
+    --ok:#3C7A5B;
+    --shadow: 0 1px 2px rgba(27,42,74,0.06), 0 4px 14px rgba(27,42,74,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(27,42,74,0.05) 1px, transparent 0);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    padding-bottom: 80px;
+  }
+  header{
+    padding: 36px 24px 22px;
+    max-width: 980px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--redpen);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:"";
+    display:inline-block;
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--redpen);
+  }
+  h1{
+    font-family:'Lora', serif;
+    font-weight:700;
+    font-size: 34px;
+    margin: 6px 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .sub{ color:var(--ink-soft); font-size:15px; max-width:640px; }
+
+  .wrap{ max-width:980px; margin: 0 auto; padding: 28px 24px; }
+
+  .stepper{
+    display:flex;
+    gap: 10px;
+    margin-bottom: 28px;
+    flex-wrap:wrap;
+  }
+  .step-pill{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding: 7px 12px;
+    border-radius: 20px;
+    border:1px solid var(--line);
+    color: var(--ink-soft);
+    background: var(--paper-card);
+  }
+  .step-pill.active{
+    border-color: var(--redpen);
+    color: var(--redpen);
+    background: #FBF0F0;
+  }
+  .step-pill.done{
+    border-color: var(--ok);
+    color: var(--ok);
+  }
+
+  .card{
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 26px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow);
+  }
+  .card h2{
+    font-family:'Lora', serif;
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  .card .hint{
+    color: var(--ink-soft);
+    font-size: 13.5px;
+    margin: 0 0 18px;
+  }
+
+  label{
+    display:block;
+    font-size: 12.5px;
+    font-weight:600;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+    margin-top: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  label:first-of-type{ margin-top:0; }
+
+  input[type=text], textarea, select{
+    width:100%;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family:'Inter', sans-serif;
+    font-size: 14px;
+    background: #FEFEFC;
+    color: var(--ink);
+  }
+  textarea{ font-family:'IBM Plex Mono', monospace; font-size:13px; min-height:160px; resize:vertical; }
+  input:focus, textarea:focus, select:focus{
+    outline: none;
+    border-color: var(--redpen);
+    box-shadow: 0 0 0 3px var(--redpen-soft);
+  }
+
+  .btn{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size: 14px;
+    padding: 11px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor:pointer;
+    transition: transform .05s ease;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn-primary{ background: var(--ink); color:#fff; }
+  .btn-primary:hover{ background: var(--ink-soft); }
+  .btn-outline{ background:transparent; border:1.5px solid var(--line); color:var(--ink); }
+  .btn-outline:hover{ border-color: var(--ink); }
+  .btn-redpen{ background: var(--redpen); color:#fff; }
+  .btn-redpen:hover{ background:#9c313d; }
+  .btn:disabled{ opacity:0.45; cursor:not-allowed; }
+  .btn-row{ display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+
+  .rubric-row{
+    display:grid;
+    grid-template-columns: 100px 1fr 90px 34px;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items:start;
+  }
+  .rubric-row input, .rubric-row textarea{ font-size:13px; }
+  .rubric-row textarea{ min-height:44px; font-family:'Inter',sans-serif; }
+  .remove-btn{
+    background:none; border:none; color:var(--redpen); cursor:pointer; font-size:18px;
+    padding-top: 8px;
+  }
+  .col-labels{
+    display:grid;
+    grid-template-columns: 100px 1fr 90px 34px;
+    gap:8px;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+
+  .template-list{ display:flex; flex-direction:column; gap:8px; }
+  .template-item{
+    display:flex; justify-content:space-between; align-items:center;
+    border:1.5px solid var(--line); border-radius:6px; padding: 12px 14px;
+    cursor:pointer;
+  }
+  .template-item:hover{ border-color: var(--gold); }
+  .template-item.selected{ border-color: var(--redpen); background:#FBF0F0; }
+  .template-item .t-name{ font-weight:600; font-size:14px; }
+  .template-item .t-date{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); }
+
+  .dropzone{
+    border: 2px dashed var(--line);
+    border-radius: 10px;
+    padding: 34px 20px;
+    text-align:center;
+    color: var(--ink-soft);
+    cursor:pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .dropzone:hover, .dropzone.drag{ border-color: var(--redpen); background:#FBF0F0; }
+  .dropzone strong{ color:var(--ink); }
+
+  .file-list{ margin-top:14px; display:flex; flex-direction:column; gap:6px; }
+  .file-item{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:13px; padding:8px 12px; background:#FAF8F2; border-radius:6px;
+    border:1px solid var(--line);
+  }
+  .file-item .status{ font-family:'IBM Plex Mono',monospace; font-size:11px; }
+  .status.pending{ color: var(--ink-soft); }
+  .status.working{ color: var(--gold); }
+  .status.done{ color: var(--ok); }
+  .status.error{ color: var(--redpen); }
+
+  table{ width:100%; border-collapse: collapse; font-size:13.5px; }
+  th, td{ text-align:left; padding: 10px 10px; border-bottom: 1px solid var(--line); vertical-align:top; }
+  th{ font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; color:var(--ink-soft); letter-spacing:0.03em; }
+  .score-cell{ font-family:'IBM Plex Mono',monospace; color: var(--redpen); font-weight:600; }
+  .detail-toggle{ font-size:12px; color:var(--gold); cursor:pointer; text-decoration:underline; }
+  .detail-row td{ background:#FAF8F2; font-size:13px; }
+  .crit-block{ margin-bottom:10px; padding-bottom:10px; border-bottom:1px dashed var(--line); }
+  .crit-block:last-child{ border-bottom:none; }
+  .crit-name{ font-weight:600; }
+  .crit-marks{ font-family:'IBM Plex Mono',monospace; color:var(--redpen); }
+
+  .toast{
+    position: fixed; bottom: 20px; left:50%; transform: translateX(-50%);
+    background: var(--ink); color:#fff; padding: 12px 20px; border-radius: 8px;
+    font-size:13.5px; box-shadow: var(--shadow); z-index: 999;
+    max-width: 90%;
+  }
+  .toast.error{ background: var(--redpen); }
+
+  .config-note{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    background:#FAF3E4;
+    border:1px solid #EAD9AE;
+    color:#7A5A12;
+    padding:10px 12px;
+    border-radius:6px;
+    margin-bottom:18px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Meja Semakan Digital</div>
+  <h1>Sistem Moderasi Skrip Pelajar</h1>
+  <p class="sub">Sediakan rubrik sekali, semak berpuluh skrip sekelip mata. Setiap markah disertakan bukti dan justifikasi daripada teks pelajar.</p>
+  <p style="margin-top:10px;"><a href="#" onclick="openPrivacyModal();return false;" style="font-size:12.5px; color:var(--ink-soft);">Dasar Privasi</a></p>
+</header>
+
+<!-- PRIVACY POLICY MODAL -->
+<div id="privacyModal" style="display:none; position:fixed; inset:0; background:rgba(27,42,74,0.45); z-index:1000; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:var(--paper-card); max-width:640px; width:100%; max-height:82vh; overflow-y:auto; border-radius:10px; padding:30px; box-shadow:var(--shadow);">
+    <h2 style="font-family:'Lora',serif; margin-top:0;">Dasar Privasi</h2>
+    <p class="hint" style="background:#FAF3E4; border:1px solid #EAD9AE; color:#7A5A12; padding:10px 12px; border-radius:6px;">
+      ⚠️ Templat sedia diedit. Gantikan teks di bawah dengan wording rasmi Dasar Privasi
+      Institut Pendidikan Guru Malaysia (IPGM) dan/atau Unit Kokurikulum jika anda mempunyai
+      salinan rasmi. Cari <code>PRIVACY_POLICY_TEXT</code> dalam kod untuk sunting.
+    </p>
+    <div id="privacyContent" style="font-size:13.5px; line-height:1.7; color:var(--ink);"></div>
+    <button class="btn btn-outline" style="margin-top:16px;" onclick="closePrivacyModal()">Tutup</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="config-note" id="configNote">
+    ⚠️ Tetapkan URL Web App Apps Script anda dalam kod (cari <code>WEB_APP_URL</code> di bahagian bawah fail index.html) sebelum guna sistem ini.
+  </div>
+
+  <div class="stepper">
+    <div class="step-pill" id="pill-1">01 · Rubrik</div>
+    <div class="step-pill" id="pill-2">02 · Upload Skrip</div>
+    <div class="step-pill" id="pill-3">03 · Analisis</div>
+    <div class="step-pill" id="pill-4">04 · Keputusan</div>
+  </div>
+
+  <!-- STEP 1: RUBRIC -->
+  <div class="card" id="section-rubric">
+    <h2>Langkah 1 — Rubrik Pemarkahan</h2>
+    <p class="hint">Pilih rubrik sedia ada atau cipta rubrik baharu untuk tugasan ini.</p>
+
+    <div class="template-list" id="templateList"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="toggleNewRubricForm()">+ Cipta Rubrik Baharu</button>
+      <button class="btn btn-primary" id="btnUseRubric" onclick="confirmRubricSelection()" disabled>Guna Rubrik Ini →</button>
+    </div>
+
+    <div id="newRubricForm" style="display:none; margin-top:22px; border-top:1px solid var(--line); padding-top:20px;">
+      <label>Nama Rubrik</label>
+      <input type="text" id="rubricName" placeholder="cth: Rubrik Tugasan Amali 2 — Kajian Kes">
+
+      <label style="margin-top:20px;">Kriteria Pemarkahan</label>
+      <div class="col-labels">
+        <div>Kod</div><div>Nama & Deskriptor</div><div>Markah Penuh</div><div></div>
+      </div>
+      <div id="criteriaRows"></div>
+      <button class="btn btn-outline" style="margin-top:8px; font-size:13px; padding:8px 14px;" onclick="addCriteriaRow()">+ Tambah Kriteria</button>
+
+      <div class="btn-row">
+        <button class="btn btn-redpen" onclick="saveRubric()">Simpan Rubrik</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: UPLOAD -->
+  <div class="card" id="section-upload" style="display:none;">
+    <h2>Langkah 2 — Upload Skrip Pelajar</h2>
+    <p class="hint">Rubrik terpilih: <strong id="activeRubricName">—</strong>. Upload beberapa PDF sekaligus.</p>
+
+    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+      <strong>Klik untuk pilih fail</strong> atau seret & lepas PDF di sini<br>
+      <span style="font-size:12px;">Nama fail akan digunakan sebagai nama pelajar (boleh disunting)</span>
+    </div>
+    <input type="file" id="fileInput" accept="application/pdf" multiple style="display:none;">
+
+    <div class="file-list" id="fileList"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goToStep(1)">← Kembali</button>
+      <button class="btn btn-primary" id="btnStartBatch" onclick="startBatchAnalysis()" disabled>Mula Analisis Batch →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: PROGRESS -->
+  <div class="card" id="section-progress" style="display:none;">
+    <h2>Langkah 3 — Analisis Sedang Berjalan</h2>
+    <p class="hint">Sila tunggu — setiap skrip diekstrak dan disemak oleh AI mengikut rubrik.</p>
+    <div class="file-list" id="progressList"></div>
+  </div>
+
+  <!-- STEP 4: RESULTS -->
+  <div class="card" id="section-results" style="display:none;">
+    <h2>Langkah 4 — Keputusan Semakan</h2>
+    <p class="hint">Markah adalah <strong>cadangan AI</strong> untuk pertimbangan pensyarah — bukan keputusan muktamad.</p>
+    <div style="overflow-x:auto;">
+      <table id="resultsTable">
+        <thead>
+          <tr><th>Pelajar</th><th>Fail</th><th>Markah</th><th></th></tr>
+        </thead>
+        <tbody id="resultsBody"></tbody>
+      </table>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="exportCsv()">⬇ Eksport CSV</button>
+      <button class="btn btn-outline" onclick="goToStep(2)">← Semak Skrip Lain</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   TETAPAN — TAMPAL URL WEB APP APPS SCRIPT ANDA DI SINI
+   ========================================================= */
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyMSkefidtNZm_8qPRmLmKs2c_e9vUVnWvLbQhHnjdzM1ftWGo8gJ8ByFDkOfER0RcR/exec';
+
+/* =========================================================
+   DASAR PRIVASI — TEMPLAT SEDIA DIEDIT
+   Gantikan kandungan ini dengan wording rasmi Dasar Privasi
+   IPGM / Unit Kokurikulum jika anda mempunyai salinan rasmi.
+   ========================================================= */
+const PRIVACY_POLICY_TEXT = `
+<p><strong>Institut Pendidikan Guru Malaysia (IPGM)</strong> dan <strong>Unit Kokurikulum</strong>
+komited memastikan sebarang maklumat yang dikumpul melalui sistem ini digunakan secara
+bertanggungjawab dan mematuhi Akta Perlindungan Data Peribadi 2010 (PDPA) serta
+dasar keselamatan siber Kementerian Pendidikan Malaysia (KPM).</p>
+
+<h3 style="font-family:'Lora',serif; font-size:16px;">1. Maklumat Yang Dikumpul</h3>
+<p>Sistem ini mengumpul: nama pelajar (daripada nama fail skrip yang dimuat naik),
+kandungan skrip jawapan tugasan, rubrik pemarkahan yang dicipta oleh pensyarah, dan
+keputusan analisis pemarkahan yang dijana.</p>
+
+<h3 style="font-family:'Lora',serif; font-size:16px;">2. Tujuan Penggunaan</h3>
+<p>Maklumat digunakan semata-mata untuk tujuan semakan dan moderasi akademik dalaman
+oleh pensyarah IPG berkenaan. Data tidak dikongsi dengan pihak ketiga selain
+penyedia perkhidmatan teknikal yang diperlukan untuk analisis (Groq API, Google
+Workspace) bagi tujuan pemprosesan sahaja.</p>
+
+<h3 style="font-family:'Lora',serif; font-size:16px;">3. Penyimpanan & Keselamatan</h3>
+<p>Data disimpan dalam Google Sheets terhad kepada akaun Google organisasi IPG.
+Kunci API disimpan secara selamat di bahagian pelayan (Script Properties) dan
+tidak terdedah kepada pengguna akhir.</p>
+
+<h3 style="font-family:'Lora',serif; font-size:16px;">4. Hak Pelajar & Pensyarah</h3>
+<p>Pelajar berhak memohon akses, pembetulan, atau pemadaman data peribadi mereka
+yang disimpan dalam sistem ini dengan menghubungi pensyarah/unit yang mengendalikan
+tugasan berkenaan.</p>
+
+<h3 style="font-family:'Lora',serif; font-size:16px;">5. Pertanyaan</h3>
+<p>Sebarang pertanyaan berkaitan dasar privasi ini boleh dikemukakan kepada
+Unit Kokurikulum atau pentadbir sistem IPG kampus berkenaan.</p>
+
+<p style="font-size:11.5px; color:var(--ink-soft); margin-top:20px;">
+Templat ini disediakan sebagai panduan umum dan BUKAN teks rasmi IPGM/KPM.
+Sila rujuk dan gantikan dengan Dasar Privasi rasmi organisasi anda sebelum
+digunakan secara produksi.</p>
+`;
+
+function openPrivacyModal(){
+  document.getElementById('privacyContent').innerHTML = PRIVACY_POLICY_TEXT;
+  const modal = document.getElementById('privacyModal');
+  modal.style.display = 'flex';
+}
+function closePrivacyModal(){
+  document.getElementById('privacyModal').style.display = 'none';
+}
+
+let currentStep = 1;
+let templates = [];
+let selectedTemplate = null;
+let uploadedFiles = []; // {file, studentName, status}
+let currentBatchId = null;
+let batchResults = [];
+
+function showToast(msg, isError){
+  const t = document.createElement('div');
+  t.className = 'toast' + (isError ? ' error' : '');
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(()=> t.remove(), 4000);
+}
+
+async function callBackend(action, params){
+  if(!WEB_APP_URL || WEB_APP_URL.indexOf('MASUKKAN_URL') === 0){
+    showToast('URL Web App belum ditetapkan dalam kod.', true);
+    throw new Error('WEB_APP_URL not set');
+  }
+  const body = Object.assign({ action }, params);
+  const res = await fetch(WEB_APP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body)
+  });
+  const json = await res.json();
+  if(!json.success){ throw new Error(json.error || 'Ralat tidak diketahui'); }
+  return json;
+}
+
+/* ---------- STEP NAVIGATION ---------- */
+function goToStep(n){
+  currentStep = n;
+  document.getElementById('section-rubric').style.display = n===1 ? 'block':'none';
+  document.getElementById('section-upload').style.display = n===2 ? 'block':'none';
+  document.getElementById('section-progress').style.display = n===3 ? 'block':'none';
+  document.getElementById('section-results').style.display = n===4 ? 'block':'none';
+  for(let i=1;i<=4;i++){
+    const pill = document.getElementById('pill-'+i);
+    pill.classList.remove('active','done');
+    if(i === n) pill.classList.add('active');
+    else if(i < n) pill.classList.add('done');
+  }
+}
+
+/* ---------- STEP 1: RUBRIC TEMPLATES ---------- */
+async function loadTemplates(){
+  try{
+    const json = await callBackend('listRubrics', {});
+    templates = json.templates;
+    renderTemplateList();
+  }catch(err){ showToast(err.message, true); }
+}
+
+function renderTemplateList(){
+  const list = document.getElementById('templateList');
+  if(templates.length === 0){
+    list.innerHTML = '<p class="hint" style="margin:0;">Belum ada rubrik disimpan. Cipta rubrik baharu di bawah.</p>';
+    return;
+  }
+  list.innerHTML = templates.map(t => `
+    <div class="template-item ${selectedTemplate && selectedTemplate.id===t.id ? 'selected':''}" onclick="selectTemplate('${t.id}')">
+      <div>
+        <div class="t-name">${escapeHtml(t.name)}</div>
+        <div class="t-date">${t.id}</div>
+      </div>
+      <div class="t-date">${new Date(t.createdDate).toLocaleDateString('ms-MY')}</div>
+    </div>
+  `).join('');
+}
+
+function selectTemplate(id){
+  selectedTemplate = templates.find(t => t.id === id);
+  document.getElementById('btnUseRubric').disabled = false;
+  renderTemplateList();
+}
+
+function toggleNewRubricForm(){
+  const form = document.getElementById('newRubricForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if(form.style.display === 'block' && document.getElementById('criteriaRows').children.length === 0){
+    addCriteriaRow(); addCriteriaRow();
+  }
+}
+
+function addCriteriaRow(){
+  const container = document.getElementById('criteriaRows');
+  const idx = container.children.length + 1;
+  const row = document.createElement('div');
+  row.className = 'rubric-row';
+  row.innerHTML = `
+    <input type="text" placeholder="A${idx}" class="crit-id">
+    <textarea placeholder="Nama kriteria & deskriptor tahap pencapaian (cth: Cemerlang(5): ...; Baik(3-4): ...; Lemah(1-2): ...)" class="crit-desc"></textarea>
+    <input type="text" placeholder="5" class="crit-max">
+    <button class="remove-btn" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+async function saveRubric(){
+  const name = document.getElementById('rubricName').value.trim();
+  if(!name){ showToast('Sila masukkan nama rubrik', true); return; }
+  const rows = document.querySelectorAll('#criteriaRows .rubric-row');
+  if(rows.length === 0){ showToast('Sila tambah sekurang-kurangnya satu kriteria', true); return; }
+
+  const criteria = [];
+  for(const row of rows){
+    const id = row.querySelector('.crit-id').value.trim();
+    const desc = row.querySelector('.crit-desc').value.trim();
+    const max = parseFloat(row.querySelector('.crit-max').value) || 0;
+    if(!id || !desc){ showToast('Lengkapkan semua ruangan kriteria', true); return; }
+    criteria.push({ id, name: desc.split(':')[0], descriptors: desc, maxMarks: max });
+  }
+
+  try{
+    const json = await callBackend('saveRubric', { name, criteria: JSON.stringify(criteria) });
+    showToast('Rubrik "'+name+'" berjaya disimpan');
+    document.getElementById('rubricName').value = '';
+    document.getElementById('criteriaRows').innerHTML = '';
+    document.getElementById('newRubricForm').style.display = 'none';
+    await loadTemplates();
+    selectTemplate(json.id);
+  }catch(err){ showToast(err.message, true); }
+}
+
+function confirmRubricSelection(){
+  if(!selectedTemplate) return;
+  document.getElementById('activeRubricName').textContent = selectedTemplate.name;
+  goToStep(2);
+}
+
+/* ---------- STEP 2: FILE UPLOAD ---------- */
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+function handleFiles(fileListRaw){
+  for(const file of fileListRaw){
+    if(file.type !== 'application/pdf') continue;
+    uploadedFiles.push({
+      file,
+      studentName: file.name.replace(/\.pdf$/i,''),
+      status: 'pending'
+    });
+  }
+  renderFileList();
+}
+
+function renderFileList(){
+  const list = document.getElementById('fileList');
+  list.innerHTML = uploadedFiles.map((f, i) => `
+    <div class="file-item">
+      <input type="text" value="${escapeHtml(f.studentName)}" style="border:none;background:transparent;font-size:13px;flex:1;" onchange="uploadedFiles[${i}].studentName=this.value">
+      <span class="status ${f.status}" id="filestatus-${i}">${statusLabel(f.status)}</span>
+    </div>
+  `).join('');
+  document.getElementById('btnStartBatch').disabled = uploadedFiles.length === 0;
+}
+
+function statusLabel(s){
+  return { pending:'menunggu', working:'memproses…', done:'selesai', error:'ralat' }[s] || s;
+}
+
+/* ---------- STEP 3: BATCH PROCESSING ---------- */
+async function startBatchAnalysis(){
+  currentBatchId = 'BATCH-' + new Date().getTime();
+  batchResults = [];
+  goToStep(3);
+
+  const progressList = document.getElementById('progressList');
+  progressList.innerHTML = uploadedFiles.map((f,i) => `
+    <div class="file-item">
+      <span>${escapeHtml(f.studentName)}</span>
+      <span class="status pending" id="progress-${i}">menunggu</span>
+    </div>
+  `).join('');
+
+  for(let i=0; i<uploadedFiles.length; i++){
+    await processOneFile(i);
+  }
+
+  renderResultsTable();
+  goToStep(4);
+}
+
+function setProgress(i, status){
+  const el = document.getElementById('progress-'+i);
+  if(el){ el.textContent = statusLabel(status); el.className = 'status ' + status; }
+}
+
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function processOneFile(i){
+  const item = uploadedFiles[i];
+  try{
+    setProgress(i, 'working');
+
+    const base64Data = await fileToBase64(item.file);
+    const extractRes = await callBackend('extractPdfText', { base64Data, fileName: item.file.name });
+    const scriptText = extractRes.text;
+
+    const analysisRes = await callBackend('analyzeScript', {
+      rubricId: selectedTemplate.id,
+      studentName: item.studentName,
+      scriptText
+    });
+
+    const result = analysisRes.result;
+    await callBackend('saveResult', {
+      batchId: currentBatchId,
+      studentName: item.studentName,
+      fileName: item.file.name,
+      rubricId: selectedTemplate.id,
+      resultJson: JSON.stringify(result),
+      totalScore: result.totalScore,
+      maxScore: result.maxScore
+    });
+
+    batchResults.push({
+      studentName: item.studentName,
+      fileName: item.file.name,
+      result
+    });
+
+    setProgress(i, 'done');
+  }catch(err){
+    setProgress(i, 'error');
+    batchResults.push({
+      studentName: item.studentName,
+      fileName: item.file.name,
+      error: err.message
+    });
+  }
+}
+
+/* ---------- STEP 4: RESULTS ---------- */
+function renderResultsTable(){
+  const body = document.getElementById('resultsBody');
+  body.innerHTML = batchResults.map((r, i) => {
+    if(r.error){
+      return `<tr><td>${escapeHtml(r.studentName)}</td><td>${escapeHtml(r.fileName)}</td>
+        <td class="score-cell">—</td><td style="color:var(--redpen);font-size:12px;">${escapeHtml(r.error)}</td></tr>`;
+    }
+    return `
+      <tr>
+        <td>${escapeHtml(r.studentName)}</td>
+        <td>${escapeHtml(r.fileName)}</td>
+        <td class="score-cell">${r.result.totalScore} / ${r.result.maxScore}</td>
+        <td><span class="detail-toggle" onclick="toggleDetail(${i})">lihat butiran</span></td>
+      </tr>
+      <tr class="detail-row" id="detail-${i}" style="display:none;">
+        <td colspan="4">
+          ${r.result.criteriaResults.map(c => `
+            <div class="crit-block">
+              <div class="crit-name">${escapeHtml(c.criteriaName || c.criteriaId)}
+                <span class="crit-marks">(${c.marksAwarded}/${c.maxMarks})</span></div>
+              <div style="font-size:12.5px; margin-top:4px;">${escapeHtml(c.justification || '')}</div>
+              <div style="font-size:12px; color:var(--ink-soft); margin-top:4px; font-style:italic;">"${escapeHtml(c.evidence || '')}"</div>
+            </div>
+          `).join('')}
+          ${r.result.apaComplianceNotes ? `<p style="font-size:12.5px;"><strong>Pematuhan APA:</strong> ${escapeHtml(r.result.apaComplianceNotes)}</p>` : ''}
+          <p style="font-size:12.5px;"><strong>Kekuatan:</strong> ${escapeHtml(r.result.strengths || '')}</p>
+          <p style="font-size:12.5px;"><strong>Penambahbaikan:</strong> ${escapeHtml(r.result.improvements || '')}</p>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function toggleDetail(i){
+  const row = document.getElementById('detail-'+i);
+  row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
+
+function exportCsv(){
+  let csv = 'Nama Pelajar,Fail,Markah,Markah Penuh\n';
+  batchResults.forEach(r => {
+    if(r.error) return;
+    csv += `"${r.studentName}","${r.fileName}",${r.result.totalScore},${r.result.maxScore}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = currentBatchId + '.csv';
+  a.click();
+}
+
+function escapeHtml(str){
+  if(!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ---------- INIT ---------- */
+if(WEB_APP_URL && WEB_APP_URL.indexOf('MASUKKAN_URL') !== 0){
+  document.getElementById('configNote').style.display = 'none';
+}
+loadTemplates();
+</script>
+
+</body>
+</html>
